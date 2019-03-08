@@ -25,12 +25,12 @@ export default new Router({
         // 会员部分
         {
           path: '/index/Vipmanage',
-          name: 'accountadd',
+          name: 'vipmanage',
           component: () => import('./views/Vipmanage/Vipmanage.vue')
         },
         {
           path: '/index/Vipadd',
-          name: 'accountadd',
+          name: 'vipadd',
           component: () => import('./views/Vipadd/Vipadd.vue')
         },
         // 账号部分
