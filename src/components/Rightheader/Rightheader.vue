@@ -22,7 +22,7 @@
                         <div class="drop-down">
                             <el-dropdown @command="handleCommand">
                                 <span class="el-dropdown-link">
-                                    李寻欢
+                                	古力娜扎
                                     <i class="el-icon-arrow-down el-icon--right"></i>
                                 </span>
                                 <el-dropdown-menu slot="dropdown">

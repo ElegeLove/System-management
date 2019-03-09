@@ -123,17 +123,29 @@ export default {
                             password: this.accountForm.password,
                             userGroup: this.accountForm.userGroup
                         }
-                        console.log('账号数据:', params)
-
-                        this.$message({
-                            type: 'success',
-                            message: '添加账号成功'
-                        })
                         
-                        this.$router.push('/index/accountmanage')
-
-                        // 通过axios 发送给后端
-
+                        //把数据发送给后端（axios）
+                        this.req.post('/account/accountadd',params)
+                        	.then(res=>{
+                        		//接收后端数据
+                        		console.log(res)
+                        		let{ code,reason} = res;
+                        		//判断
+                        		if(code === 0){
+                        			this.$message({
+			                            type: 'success',
+			                            message: '添加账号成功'
+			                        })
+                        			//跳账号管理列表
+                        			this.$router.push('/index/accountmanage')
+                        		}else if(code === 1){
+                        			this.$message.error(reason)
+                        		}
+                        	})
+                        	.catch(err => {
+                        		console.log(err)
+                        	})
+                        	
                     } else {
                         console.log('前端验证失败！不允许提交!');
                         return false;
