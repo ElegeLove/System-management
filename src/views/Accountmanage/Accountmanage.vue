@@ -8,7 +8,7 @@
 			<!-- 面板内容 -->
 			<div class="text item">
 				<!-- 账号管理表格 -->
-				<el-table ref="accountTableData" :data="accountTableData" tooltip-effect="dark" style="width: 100%">
+				<el-table ref="accountTableData" :data="accountTableData" tooltip-effect="dark" style="width: 100%" @selection-change="handleSelectionChange">
 					<!-- 选择框 -->
 					<el-table-column type="selection" width="55">
 					</el-table-column>
@@ -38,6 +38,25 @@
 					</el-table-column>
 
 				</el-table>
+				
+				<!-- 分页 -->
+                <div style="margin-top: 20px;">
+                      <el-pagination
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange"
+                        :current-page="currentPage"
+                        :page-sizes="[1, 3, 5, 10, 30]"
+                        :page-size="3"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="total">
+                    </el-pagination>
+                </div>
+				
+				<!-- 批量删除按钮 -->
+                <div style="margin-top: 20px;">
+                    <el-button @click="batchesdel" type='danger'>批量删除</el-button>
+                    <el-button @click="cancelSelect" type='primary'>取消选择</el-button>
+                </div>
 				<!-- 模态框 -->
 				<el-dialog width="400px" title="账号修改" :visible.sync="dialogFormVisible">
 					<!-- 表格 -->
@@ -73,28 +92,66 @@
 			return {
 				// 账号列表数据
 				accountTableData: [],
-				 // 控制模态框显示和隐藏
+				// 控制模态框显示和隐藏
 				dialogFormVisible: false,
 				accountEditForm: { // 修改表单的数据
 					account: '',
 					usergroup: ''
 				},
-				formLabelWidth: '120px', // 标签宽度
-				editId: 0 // 需要修改的数据的id
+				// 标签宽度
+				formLabelWidth: '120px', 
+				// 需要修改的数据的id
+				editId: 0, 
+				// 选中的id数组
+				selectedId: [],
+				// 数据总条数
+				total: 0, 
+				// 当前默认第几页
+	            currentPage: 1, 
+	            // 每页多少条
+	            pageSize: 3 
 			}
 		},
 		methods: {
 			// 请求所有账号数据
-			getAccountList() {
-				this.req.get('/account/accountlist')
-					.then(res => {
-						// 赋值给accountTableData 渲染表格
-						this.accountTableData = res
-					})
-					.catch(err => {
-						console.log(err)
-					})
+//			getAccountList() {
+//				this.req.get('/account/accountlist')
+//					.then(res => {
+//						// 赋值给accountTableData 渲染表格
+//						this.accountTableData = res
+//					})
+//					.catch(err => {
+//						console.log(err)
+//					})
+//			},
+			// 按照分页请求数据
+			getAccountListByPage(){
+				// 收集参数（每页多少条 和 当前页码）
+				let params = {
+					pageSize:this.pageSize,
+					currentPage:this.currentPage
+				}
+				// 发送请求给后端 把分页条件发送给后端
+				this.req.get('account/accountlistbypage',params)
+				.then(res => {
+					//接收数据
+					let { total,data} = res;
+					//赋值给对应变量
+					this.total = total
+					this.accountTableData = data
+					// 如果数据为空 （优化 当当前页码数据为空 跳转到上一页）
+					if(!data.length && this.currentPage !== 1){
+						//当前页码自减1
+						this.currentPage -= 1;
+						//再次请求数据
+						this.getAccountListByPage();
+					}
+				})
+				.catch(err => {
+					console.log(err)
+				})
 			},
+			
 			// 删除函数
 			handleDelete(id) {
 				// 优化删除体验
@@ -118,7 +175,7 @@
 										message: reason
 									})
 									// 刷新列表数据
-									this.getAccountList();
+									this.getAccountListByPage();
 
 								} else if(code === 1) {
 									this.$message.error(reason)
@@ -182,7 +239,7 @@
 								message: reason
 							})
 							// 刷列表
-							this.getAccountList();
+							this.getAccountListByPage();
 
 						} else if(code === 1) {
 							// 弹失败提示
@@ -192,12 +249,69 @@
 					.catch(err => {
 						console.log(err)
 					})
-			}
+			},
+			// 取消选择
+	        cancelSelect() {
+	            this.$refs.accountTableData.clearSelection(); // 整个表格调用取消选择方法
+	        },
+	        // 当选择项发生改变触发
+	        handleSelectionChange(val) {
+	            // val就是选中的数据 把选中数据的id取出来 放在一个数组中
+	            this.selectedId = val.map(v => v.id);
+	            console.log(this.selectedId)
+	        },
+	        // 批量删除
+        	batchesdel() {
+        		// 如果用户不选 弹出提示 直接return
+        		if(!this.selectedId.length){
+        			this.$message.error('请选择要操作的选项！')
+        			return
+        		}
+        		this.$confirm('是否批量删除?','温馨提示',{
+        			confirmButtonText:'确定',
+        			cancelButtonText:'取消',
+        			type:'warning'
+        		})
+        		.then(()=>{
+        			// 发送请求 把选中的数据id发送给后端
+        			this.req.get('/account/batchesdel',{idArr: this.selectedId})
+        			.then(res=>{
+        				//接收数据
+        				let { code, reason } = res;
+        				//判断
+        				if(code === 0){
+        					this.$message({
+        						type:'success',
+        						message:reason
+        					})
+        					// 刷列表
+        					this.getAccountListByPage()
+        				}else if(code === 1){
+        					this.$message.err(reason)
+        				}
+        			})
+        			.catch(err=>{
+        				console.log(err)
+        			})
+        		})
+        	},
+        	// 每页条数变化触发
+	        handleSizeChange(val) {
+	            this.pageSize = val; // 每页多少条
+	            this.getAccountListByPage(); // 调用分页函数
+	        },
+	        // 当前页码变化触发
+	        handleCurrentChange(val) {
+	           this.currentPage = val; // 当前页
+	           this.getAccountListByPage(); // 调用分页函数
+	        }
+        	
 		},
+		
 		// 生命周期钩子函数
 		created() {
-			// 调用请求所有数据函数
-			this.getAccountList()
+				// 调用请求所有数据函数
+				this.getAccountListByPage()
 		},
 		// 过滤器
 		filters: {

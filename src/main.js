@@ -2,7 +2,7 @@
 import Vue from 'vue';
 
 // 引入element-ui
-import ElementUI from 'element-ui';  // js组件
+import ElementUI from 'element-ui'; // js组件
 import 'element-ui/lib/theme-chalk/index.css'; // 样式
 
 // base.css
@@ -24,7 +24,24 @@ Vue.use(ElementUI)
 
 Vue.config.productionTip = false
 
+router.beforeEach((to, from, next) => {
+	// 获取浏览器token
+	const token = window.localStorage.getItem('my--key')
+	// 如果没有token
+	if(!token) {
+		// 如果去的是登录
+		if(to.path === '/login') {
+			next(); // 放行
+		} else {
+			// 否则 跳转到登录
+			next({ path: '/login' })
+		}
+	} else {
+		next(); // 放行
+	}
+})
+
 new Vue({
-  router,
-  render: h => h(App)
+	router,
+	render: h => h(App)
 }).$mount('#app')

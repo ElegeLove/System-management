@@ -48,17 +48,32 @@ export default {
     data () {
         // 自定义验证密码 oldPwd
         const oldPwd = (rule, value, callback) => {
-            if (value === '') {
-                callback(new Error('请输入原密码'))
-            } else if (value.length < 3 || value.length > 5) {
-                callback(new Error('密码长度在 3 到 5 位'))
-            }else {
-                // 如果新密码不为空 再次出发一致性验证
-                if (this.passwordForm.newpassword !== '') {
-                    this.$refs.passwordForm.validateField('newpassword')
-                }
-                callback()
-            }
+        	// 通过axios 发送给后端
+        	this.req.get('/account/checkoldpwd',{ oldpassword,value })
+        	.then(res => {
+        		console.log(res)
+        		let {code,reason} = res;
+        		//判断
+        		if(code === 1){
+        			callback(new Error(reason))
+        		}else if(code === 0){
+        			callback(reason)
+        		}
+        	})
+        	.catch(err => {
+        		console.log(err)
+        	})
+//          if (value === '') {
+//              callback(new Error('请输入原密码'))
+//          } else if (value.length < 3 || value.length > 5) {
+//              callback(new Error('密码长度在 3 到 5 位'))
+//          }else {
+//              // 如果新密码不为空 再次出发一致性验证
+//              if (this.passwordForm.newpassword !== '') {
+//                  this.$refs.passwordForm.validateField('newpassword')
+//              }
+//              callback()
+//          }
         }
         
         const validatePwd = (rule, value, callback) => {
