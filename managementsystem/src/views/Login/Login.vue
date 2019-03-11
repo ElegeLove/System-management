@@ -113,7 +113,7 @@
 								//判断
 								if(code === 0) {
 									//把token存入浏览器
-									window.localStorage.setItem('my--key', token);
+									window.localStorage.setItem('my-de-key', token);
 									//弹成功提示
 									this.$message({
 										type: 'success',

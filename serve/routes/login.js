@@ -35,7 +35,7 @@ router.post('/checklogin', (req, res) => {
 
 			//生成token
 			const token = jwt.sign(userInfo, secretKey, {
-			    expiresIn:  60 * 60 * 2 // token过期时间
+			    expiresIn:  60 * 60 * 24*3 // token过期时间
 			})
 
 			res.send({code: 0, reason: '欢迎你！登录成功', token})

@@ -26,7 +26,7 @@ Vue.config.productionTip = false
 
 router.beforeEach((to, from, next) => {
 	// 获取浏览器token
-	const token = window.localStorage.getItem('my--key')
+	const token = window.localStorage.getItem('my-de-key')
 	// 如果没有token
 	if(!token) {
 		// 如果去的是登录
