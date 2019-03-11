@@ -13,11 +13,15 @@ import './assets/styles/css/iconfont.css';
 import App from './App.vue'
 import router from './router'
 
+// echarts
+import echarts from 'echarts'
+
 // request.js
 import request from './api/request'
 
 // 把request挂载Vue的原型上 所有vue实例对象共享
 Vue.prototype.req = request;
+Vue.prototype.echarts = echarts;
 
 // 使用element-ui
 Vue.use(ElementUI)

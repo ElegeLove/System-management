@@ -14,6 +14,8 @@ const secretKey = 'itsource';
 router.all('*', (req, res, next) => {
 	// 设置响应头解决跨域
 	res.setHeader("Access-Control-Allow-Origin", "*"); 
+	 // 允许携带的请求头
+	res.setHeader("Access-Control-Allow-Headers", "authorization");
 	// 放行
 	next()
 })

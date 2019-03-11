@@ -22,7 +22,7 @@
                         <div class="drop-down">
                             <el-dropdown @command="handleCommand">
                                 <span class="el-dropdown-link">
-                                	古力娜扎
+                                	{{ accountName }}
                                     <i class="el-icon-arrow-down el-icon--right"></i>
                                 </span>
                                 <el-dropdown-menu slot="dropdown">
@@ -41,10 +41,46 @@
 </template>
 <script>
 export default {
+	data(){
+		return{
+			accountName:'默认值'
+		}
+	},
     methods: {
-      handleCommand(command) {
-        console.log('参数:', command)
-      }
+    	// 点击下拉菜单选项触发函数
+        handleCommand(command) {
+        	if(command === 'logout'){
+        		// 清除token
+            	window.localStorage.removeItem('my-de-key');
+            	//弹出提示框
+            	this.$message({
+            		type:'success',
+            		message:'退出成功，欢迎归来'
+            	})
+            	setTimeout(() => {
+	                // 跳转到首页
+	                this.$router.push('/login')
+	            }, 1000)
+        	}
+        	console.log('参数:', command)
+        },
+        //获取账号名
+        getAccountName(){
+        	//发送请求 获取账号姓名
+        	this.req.get('/account/accountname')
+        	.then(res => {
+        		//把后端返回的账号名赋值给对应字段
+        		this.accountName = res.accountName;
+        	})
+        	.catch(err => {
+        		console.log(err)
+        	})
+        }
+    },
+    // 生命周期钩子函数
+    created () {
+    	// 调用获取账号名的函数
+        this.getAccountName() 
     }
 }
 </script>

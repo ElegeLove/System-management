@@ -35,7 +35,8 @@
 
                     <!-- 修改按钮 -->
                     <el-form-item>
-                        <el-button type="primary" @click="submitForm()">修改</el-button>
+                        <el-button type="primary" @click="submitForm()">确定</el-button>
+                        <el-button @click="resetForm()">重置</el-button>
                     </el-form-item>
                     
                 </el-form>
@@ -46,62 +47,61 @@
 <script>
 export default {
     data () {
-        // 自定义验证密码 oldPwd
-        const oldPwd = (rule, value, callback) => {
-        	// 通过axios 发送给后端
-        	this.req.get('/account/checkoldpwd',{ oldpassword,value })
-        	.then(res => {
-        		console.log(res)
-        		let {code,reason} = res;
-        		//判断
-        		if(code === 1){
-        			callback(new Error(reason))
-        		}else if(code === 0){
-        			callback(reason)
-        		}
-        	})
-        	.catch(err => {
-        		console.log(err)
-        	})
-//          if (value === '') {
-//              callback(new Error('请输入原密码'))
-//          } else if (value.length < 3 || value.length > 5) {
-//              callback(new Error('密码长度在 3 到 5 位'))
-//          }else {
-//              // 如果新密码不为空 再次出发一致性验证
-//              if (this.passwordForm.newpassword !== '') {
-//                  this.$refs.passwordForm.validateField('newpassword')
-//              }
-//              callback()
-//          }
+        // 验证旧密码
+        const checkoldPwd  = (rule, value, callback) => {
+            // 发送axios给后端 把用户输入的旧密码发送给后端
+            this.req.get('/account/checkoldpwd', { oldPwd: value })
+                .then(res => {
+//                  // 接收数据
+                    let { code, reason } = res;
+                    // 判断 
+                    // 验证失败
+                    if (code === 1) {
+                        callback(new Error(reason))
+                    // 验证成功
+                    } else if (code === 0) {
+                        callback()
+                    }
+//					console.log(res)
+                })
+                .catch(err => {
+                    console.log(err)
+                })
         }
-        
+
+        // 验证新密码
         const validatePwd = (rule, value, callback) => {
+            // 非空
             if (value === '') {
-                callback(new Error('请输入密码'))
-            } else if (value.length < 3 || value.length > 5) {
-                callback(new Error('密码长度在 3 到 5 位'))
-            } else if ( value === this.passwordForm.oldpassword ) {
-                callback(new Error('两次密码不能一致'))
+                callback(new Error('请输入新密码'))
+            } else if (value.length < 3 || value.length > 5) { // 长度
+                callback(new Error('密码长度 3 到 5 位'))
+            } else if (value === this.passwordForm.oldpassword) { // 一致性验证
+                callback(new Error('不能和旧密码相同'))
             } else {
-                // 如果确认密码不为空 再次出发一致性验证
                 if (this.passwordForm.checkPass !== '') {
+                    // 触发一致性验证
                     this.$refs.passwordForm.validateField('checkPass')
                 }
-                callback()
+                callback(); // 成功
             }
         }
 
-        // 自定义验证确认密码
+        // 验证确认新密码
         const checkPwd = (rule, value, callback) => {
-            if (value === '') { // 非空
-                callback(new Error('请再次输入密码'))
-            } else if ( value !== this.passwordForm.newpassword ) {
+               // 非空
+            if (value === '') {
+                callback(new Error('请确认新密码'))
+            } else if (value.length < 3 || value.length > 5) { // 长度
+                callback(new Error('密码长度 3 到 5 位'))
+            } else if (value !== this.passwordForm.newpassword) { // 一致性验证
                 callback(new Error('两次密码不一致'))
             } else {
-                callback();
+                callback(); // 成功
             }
         }
+
+
 
         return {
             // 添加密码数据
@@ -114,8 +114,7 @@ export default {
             rules: {
                 // 原密码
                 oldpassword: [
-                    { required: true, validator: oldPwd, trigger: 'blur' },
-                    { min: 3, max: 5, message: '密码长度在 3 到 5 位' }
+                    { required: true, validator: checkoldPwd, trigger: 'blur' }
                 ],
                 // 新密码
                 newpassword: [
@@ -129,33 +128,53 @@ export default {
         }
     },
     methods: {
-            // 修改表单  
-            submitForm() {
-                this.$refs.passwordForm.validate((valid) => { 
-                    if (valid) { 
+        // 修改表单  
+        submitForm() {
+            this.$refs.passwordForm.validate((valid) => { 
+                if (valid) { 
 
-                        // 收集账号和密码
-                        const params = {
-                            newpassword: this.passwordForm.newpassword
-                        }
-                        console.log('新密码为:', params)
-
-                        this.$message({
-                            type: 'success',
-                            message: '修改密码成功'
-                        })
-                        
-                        
-
-                        // 通过axios 发送给后端
-
-                    } else {
-                        console.log('前端验证失败！不允许提交!');
-                        return false;
+                    // 收集新密码
+                    const params = {
+                        newpassword: this.passwordForm.newpassword
                     }
-                });
-            }
+                    console.log('新密码为:', params)
+                    
+					// 发送axios 把新密码发送给后端
+					this.req.post('/account/savenewpassword',params)
+					.then(res => {
+						console.log(res)
+						// 接收后端返回的参数
+						let {code,reason} = res;
+						//判断
+						if(code === 0){
+							this.$message({
+	                            type: 'success',
+	                            message: reason
+	                        })
+							// 清除token
+							window.localStorage.removeItem('my-de-key')
+							// 跳转到首页
+                            this.$router.push('/login')
+						}else if(code === 1){
+							this.$message.error(reason)
+						}
+					})
+					.catch(err => {
+						console.log(err)
+					})
+
+                } else {
+                    console.log('前端验证失败！不允许提交!');
+                    return false;
+                }
+            });
+        },
+        // 重置表单   
+        resetForm() {
+        	 // 重置所有字段为空
+            this.$refs.passwordModifyForm.resetFields();
         }
+    }
 }
 </script>
 <style lang="less">

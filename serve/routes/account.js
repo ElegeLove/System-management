@@ -4,19 +4,38 @@ const router = express.Router();
 
 // 引入数据库连接模块
 const connection = require('./conn')
-
-// 引入jwt
-const jwt= require('jsonwebtoken');
+// expressJwt 用于验证token的有效性
+const expressJwt = require('express-jwt');
 // 秘钥
 const secretKey = 'itsource';
 
 // 拦截所有请求
 router.all('*', (req, res, next) => {
 	// 设置响应头解决跨域
-	res.setHeader("Access-Control-Allow-Origin", "*");
+	res.setHeader("Access-Control-Allow-Origin", "*");  // 允许的域
+	res.setHeader("Access-Control-Allow-Headers", "authorization"); // 允许携带的请求头
 	// 放行
 	next()
 })
+
+// 使用中间件验证token合法性
+router.use(expressJwt ({
+    secret:  secretKey 
+}).unless({
+    path: ['/login/checklogin']  // 不需要验证token的地址
+}))
+
+
+// 拦截器
+router.use(function (err, req, res, next) {
+    // 如果用户的请求 没有携带token 那么错误类型是 UnauthorizedError
+    if (err.name === 'UnauthorizedError') {   
+        // 如果前端请求不带token 返回错误
+        res.status(401).send('无效的token...');
+    }
+})
+
+
 
 /* 接收添加账号请求： /accountadd  */
 router.post('/accountadd', (req, res) => {
@@ -50,7 +69,6 @@ router.get('/accountlist', (req, res) => {
 	connection.query(sqlStr, (err, data) => {
 		if(err) throw err;
 		// 把查询到的所有账号数据返回给前端
-		console.log(data)
 		res.send(data);
 	})
 })
@@ -130,6 +148,7 @@ router.get('/batchesdel',(req,res) =>{
 
 /* 接收分页请求： /accountlistbypage */ 
 router.get('/accountlistbypage',(req,res) => {
+	
 	//接收分页条件
 	let { pageSize,currentPage } = req.query;
 	//写sql语句
@@ -152,32 +171,16 @@ router.get('/accountlistbypage',(req,res) => {
 	})
 })
 
-///* 检测使用户和密码是否正确的路由: /checklogin */ 
-//router.post('/checklogin',(req,res) => {
-//	// 接收用户名和密码
-//	let { account, password } = req.body;
-//	// 构造sql语句
-//	const sqlStr = `select * from account where account='${account}' and password='${password}'`;
-//	// 执行sql
-//	connection.query(sqlStr, (err, data) => {
-//		if (err) throw err;
-//		//判断
-//		if(data.length){
-//			//对象浅拷贝
-//			const userInfo = Object.assign({},data[0]);
-//			//生成token
-//			const token = jwt.sign(userInfo,secretKey,{
-//				//token过期时间
-//				expiresIn:60 * 60 * 2
-//			})
-//			res.send({code:0,reason:'登陆成功',token})
-//			
-//		}else{
-//			res.send({code:1,reason:'登陆失败，请检查账号或密码是否输入正确'})
-//		}
-//	})
-//})
+/* 接收获取账号名请求: /accountname */ 
+router.get('/accountname', (req, res) => {
+	// 当前登录的用户账号信息 验证完token的有效性以后 被设置到了 req.user 中
+	// 获取账号名
+	const accountName = req.user.account;
+	// 返回账号名给前端
+	res.send({ accountName }) 
+})
 
+/* 验证旧密码: /checkoldpwd */ 
 router.get('/checkoldpwd',(req,res) => {
 	//接收旧密码
 	let {oldPwd} = req.query;
@@ -185,8 +188,39 @@ router.get('/checkoldpwd',(req,res) => {
 	if(oldPwd === req.user.password){
 		res.send({code:0,reason:'旧密码正确'})
 	}else{
-		res.send({code:0,reason:'旧密码错误'})
+		res.send({code:1,reason:'旧密码错误'})
 	}
 })
 
+/* 保存新密码: /savenewpassword */ 
+router.post('/savenewpassword',(req,res) => {
+	// 接收新密码
+	let {newpassword} = req.body;
+	// 获取当前登录用户的id
+	let {id} = req.user
+	//写sql语句
+	const sqlStr = `update account set password='${newpassword}' where id=${id}`;
+	//执行sql语句
+	connection.query(sqlStr,(err,data) => {
+		if(err) throw err;
+		//判断
+		if(data.affectedRows > 0){
+			res.send({code:0,reason:'密码修改成功请重新登陆'})
+		}else{
+			res.send({code:1,reason:'密码修改失败'})
+		}
+	})
+})
+
+/*  接收销售数据的请求: /salesdata */ 
+router.get('/salesdata', (req, res) => {
+	// 准备一份报表数据
+	// 写sql语句
+	const sqlStr = `select * from sales where ctime between '2019-03-01 00:00:00' and '2019-09-06 16:00:00'`;
+	// 执行sql
+	connection.query(sqlStr, (err, data) => {
+		if (err) throw err;
+		res.send(data) // 把数据返回给前端
+	})
+})
 module.exports = router;
