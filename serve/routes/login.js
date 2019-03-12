@@ -1,25 +1,7 @@
-var express = require('express');
-var router = express.Router();
-
+// 引入jwt验证token 和 设置响应头的模块
+const router =  require('./jwt');
 // 引入数据库连接模块
 const connection = require('./conn')
-
-// 引入jwt
-const jwt= require('jsonwebtoken');
-// 秘钥
-const secretKey = 'itsource';
-
-
-// 拦截所有请求
-router.all('*', (req, res, next) => {
-	// 设置响应头解决跨域
-	res.setHeader("Access-Control-Allow-Origin", "*"); 
-	 // 允许携带的请求头
-	res.setHeader("Access-Control-Allow-Headers", "authorization");
-	// 放行
-	next()
-})
-
 
 /* 检测使用户和密码是否正确的路由: /checklogin */ 
 router.post('/checklogin', (req, res) => {

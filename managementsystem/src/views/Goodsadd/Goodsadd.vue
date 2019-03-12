@@ -18,13 +18,18 @@
                     style="width: 300px;"
 					class="demo-goods"
 					>
+					<!-- 所属分类 -->
 					<el-form-item label="所属分类" prop="classify">
-						<el-select v-model="goods.classify" placeholder="----请选择分类----">
-							<el-option label="----选择分类一----" value="shanghai"></el-option>
-							<el-option label="----选择分类二----" value="beijing"></el-option>
+						<el-select v-model="goods.classify" placeholder="请选择分类">
+							<el-option label="电子类" value="电子类"></el-option>
+                            <el-option label="蔬菜类" value="蔬菜类"></el-option>
+                            <el-option label="生活用品类" value="生活用品类"></el-option>
+                            <el-option label="烟酒类" value="烟酒类"></el-option>
+                            <el-option label="服装类" value="服装类"></el-option>
 						</el-select>
 					</el-form-item>
 					
+					<!-- 商品条形码 -->
 					<el-form-item label="条形码" prop="barcode">
 						<el-row :gutter="20">
 			  				<el-col :span="18">
@@ -33,23 +38,25 @@
 							<el-col :span="4">
 								<el-button type="primary" @click="creatbarcode">生成条形码</el-button>
 							</el-col>
-						</el-row>
-								    
+						</el-row>  
 					</el-form-item>
 					
+					<!-- 商品名称 -->
 					<el-form-item label="商品名称" prop="productname">
                         <el-input type="text" v-model="goods.productname" autocomplete="off"></el-input>
                     </el-form-item>
                     
-                    <el-form-item label="商品售价" prop="market">
+                    <!-- 商品进价 -->
+                    <el-form-item label="商品进价" prop="pcsaleprice">
                         <el-row :gutter="20">
 			  				<el-col :span="18">
-							    <el-input type="text" v-model="goods.market" autocomplete="off"></el-input>
+							    <el-input type="text" @blur="autoPrice" v-model="goods.pcsaleprice" autocomplete="off"></el-input>
 							</el-col>
 							<el-col :span="4">元</el-col>
 						</el-row>
                     </el-form-item>
                     
+                    <!-- 商品市场价 -->
                     <el-form-item label="市场价" prop="price">
                     	<el-row :gutter="20">
 			  				<el-col :span="18">
@@ -59,45 +66,61 @@
 						</el-row>
                     </el-form-item>
                     
-                    <el-form-item label="商品进价" prop="pcsaleprice">
+                    <!-- 商品售价 -->
+                    <el-form-item label="商品售价" prop="market">
                         <el-row :gutter="20">
 			  				<el-col :span="18">
-							    <el-input type="text" v-model="goods.pcsaleprice" autocomplete="off"></el-input>
+							    <el-input type="text" v-model="goods.market" autocomplete="off"></el-input>
 							</el-col>
 							<el-col :span="4">元</el-col>
 						</el-row>
                     </el-form-item>
                     
+                    <!-- 入库数量 -->
                     <el-form-item label="入库数量" prop="goodsnumber">
                         <el-input type="text" v-model="goods.goodsnumber" autocomplete="off"></el-input>
                     </el-form-item>
                     
+                    <!-- 商品重量 -->
                     <el-form-item label="商品重量" prop="weight">
                         <el-input type="text" v-model="goods.weight" autocomplete="off"></el-input>
                     </el-form-item>
                     
+                    <!-- 商品单位 -->
                     <el-form-item label="商品单位" prop="productunit">
-                        <el-input type="text" v-model="goods.productunit" autocomplete="off"></el-input>
+                        <el-select v-model="goods.productunit" placeholder="请选择商品单位">
+                            <el-option label="个" value="个"></el-option>
+                            <el-option label="包" value="包"></el-option>
+                            <el-option label="条" value="条"></el-option>
+                            <el-option label="只" value="只"></el-option>
+                            <el-option label="瓶" value="瓶"></el-option>
+                            <el-option label="桶" value="桶"></el-option>
+                            <el-option label="袋" value="袋"></el-option>
+                        </el-select>
                     </el-form-item>
 					
-					<el-form-item label="会员优惠">
+					<!-- 会员优惠 -->
+					<el-form-item label="会员优惠" prop="members">
 					    <el-radio-group v-model="goods.members">
 						    <el-radio label="享受" checked></el-radio>
 						    <el-radio label="不享受"></el-radio>
 					    </el-radio-group>
 					</el-form-item>
 					
-					<el-form-item label="是否促销">
+					<!-- 是否促销 -->
+					<el-form-item label="是否促销" prop="promotion">
 					    <el-radio-group v-model="goods.promotion">
-						    <el-radio label="启用"></el-radio>
-						    <el-radio label="禁用"></el-radio>
+						    <el-option label="促销" value="促销"></el-option>
+                            <el-option label="未促销" value="未促销"></el-option>
 					    </el-radio-group>
 					</el-form-item>
 					
-					<el-form-item label="商品简介" prop="desc">
-						<el-input type="textarea" v-model="goods.desc"></el-input>
+					<!-- 商品简介 -->
+					<el-form-item label="商品简介" prop="goodsdesc">
+						<el-input type="textarea" v-model="goods.goodsdesc"></el-input>
 					</el-form-item>
 					
+					<!-- 提交按钮 -->
 					<el-form-item>
 						<el-button type="primary" @click="submitForm">立即创建</el-button>
 						<el-button @click="resetForm">重置</el-button>
@@ -112,6 +135,7 @@
 	export default {
 		data() {
 			return {
+				// 添加商品表单数据
 				goods: {
 					classify: '',
 					barcode:'',
@@ -124,35 +148,61 @@
 					productunit:'',
 					members:'',
 					promotion:'',
-					desc: ''
+					goodsdesc: ''
 				},
 				rules: {
 					classify: [
 						{ required: true, message: '请选择所属分类', trigger: 'change' }
 					],
 					barcode: [
-						{ required: true, message: '请获取条形码', trigger: 'change' }
+						{ required: true, message: '请获取条形码', trigger: 'blur' }
 					],
 					productname: [
-						{ required: true, message: '请选择活动区域', trigger: 'change' }
+						{ required: true, message: '不能为空', trigger: 'blur' }
 					],
 					market: [
-						{ required: true, message: '请选择活动区域', trigger: 'change' }
+						{ required: true, message: '不能为空', trigger: 'blur' }
 					],
-					desc: [
+					price: [
+						{ required: true, message: '不能为空', trigger: 'blur' }
+					],
+					pcsaleprice: [
+						{ required: true, message: '不能为空', trigger: 'blur' }
+					],
+					goodsnumber: [
+						{ required: true, message: '不能为空', trigger: 'blur' }
+					],
+					weight: [
+						{ required: true, message: '不能为空', trigger: 'blur' }
+					],
+					productunit: [
+						{ required: true, message: '请选择单位', trigger: 'change' }
+					],
+					members: [
+						{ required: true, message: '不能为空', trigger: 'blur' }
+					],
+					promotion: [
+						{ required: true, message: '不能为空', trigger: 'blur' }
+					],
+					goodsdesc: [
 						{ required: true, message: '不超过200个字', trigger: 'blur' }
 					]
 				}
 			};
 		},
 		methods: {
+			// 商品进价失去焦点 自动填写市场价和售价
+	        autoPrice () {
+	            this.goods.price = this.goods.pcsaleprice * 3; // 市场价
+	            this.goods.market = this.goods.pcsaleprice * 2; // 售价
+	        },
 			submitForm(formName) {
 				this.$refs.goods.validate((valid) => {
 					if(valid) {
 						//收集数据
 						const params = {
-							classify: this.goods.classify,
 							barcode: this.goods.barcode,
+							classify: this.goods.classify,
 							productname: this.goods.productname,
 							market: this.goods.market,
 							price: this.goods.price,
@@ -162,8 +212,9 @@
 							productunit: this.goods.productunit,
 							members: this.goods.members,
 							promotion: this.goods.promotion,
-							desc: this.goods.desc
+							goodsdesc: this.goods.goodsdesc
 						}
+						console.log(params)
 						//把数据发送给后端（axios）
 						this.req.post('/goods/goodsadd',params)
 						.then(res=>{

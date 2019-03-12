@@ -5,6 +5,11 @@ Vue.use(Router)
 
 export default new Router({
   routes: [
+  	// 默认根目录
+    {
+      path: '/',
+      redirect: '/login' // 路由重定向
+    },
     //登陆
     {
       path: '/login',

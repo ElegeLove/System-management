@@ -193,6 +193,7 @@
 						});
 					});
 			},
+			
 			// 修改(编辑)
 			handleEdit(id) {
 				// 显示模态框
@@ -250,6 +251,7 @@
 						console.log(err)
 					})
 			},
+			
 			// 取消选择
 	        cancelSelect() {
 	            this.$refs.accountTableData.clearSelection(); // 整个表格调用取消选择方法
@@ -295,6 +297,7 @@
         			})
         		})
         	},
+        	
         	// 每页条数变化触发
 	        handleSizeChange(val) {
 	            this.pageSize = val; // 每页多少条
